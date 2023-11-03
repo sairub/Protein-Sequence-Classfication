@@ -14,12 +14,14 @@ def train(model, train_loader, dev_loader, max_epochs):
     )
 
     trainer.fit(model, train_loader, dev_loader)
+    trainer.save_checkpoint("model.ckpt")
     return trainer
 
-def evaluate_model(model, dataloader,trainer):
+def evaluate_model(model, dataloader):
     # Evaluation loop
-    result = trainer.test(model, test_dataloaders=dataloader)
-    return result
+    model.eval()
+    y_pred = model(dataloader)
+    return y_pred
 
 def predict(model, dataloader):
     # Prediction loop
@@ -82,11 +84,11 @@ def main():
 
     # Create the LSTM-based model
     prot_cnn = ProtCNN(num_classes, args.learning_rate, args.momentum, args.weight_decay)
-    trainer = train(prot_cnn, dataloaders['train'], dataloaders['dev'], max_epochs=args.num_epochs)
+    train(prot_cnn, dataloaders['train'], dataloaders['dev'], max_epochs=args.num_epochs)
 
     # if args.evaluate:
         # Evaluate on the test set
-    res = evaluate_model(prot_cnn, dataloaders['test'],trainer)
+    res = evaluate_model(prot_cnn, dataloaders['test'])
     print(res)
     
 if __name__ == "__main__":
