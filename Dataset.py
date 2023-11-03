@@ -33,7 +33,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         seq = torch.from_numpy(np.array(seq))
             
         # One-hot encode    
-        one_hot_seq = torch.nn.functional.one_hot(seq, num_classes=len(self.word2id), ) 
+        one_hot_seq = torch.nn.functional.one_hot(seq.long(), num_classes=len(self.word2id), ) 
 
         # Permute channel (one-hot) dim first
         one_hot_seq = one_hot_seq.permute(1,0)

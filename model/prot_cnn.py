@@ -58,7 +58,7 @@ class ProtCNN(pl.LightningModule):
         self.momentum = momentum
         self. weight_decay = weight_decay
 
-        # self.train_acc = torchmetrics.Accuracy(task='multiclass',num_classes=num_classes)
+        # self.train_acc = torchmetrics.Accuracy()
         # self.valid_acc = torchmetrics.Accuracy(task='multiclass',num_classes=num_classes)
         
     def forward(self, x):
@@ -76,14 +76,14 @@ class ProtCNN(pl.LightningModule):
 
         return loss
     
-    # def validation_step(self, batch, batch_idx):
-    #     x, y = batch['sequence'], batch['target']
-    #     y_hat = self(x)
-    #     pred = torch.argmax(y_hat, dim=1)        
-    #     acc = self.valid_acc(pred, y)
-    #     self.log('valid_acc', self.valid_acc, on_step=False, on_epoch=True)
-
-    #     return acc
+    def validation_step(self, batch, batch_idx):
+        x, y = batch['sequence'], batch['target']
+        y_hat = self(x)
+        pred = torch.argmax(y_hat, dim=1)      
+        return None  
+        # acc = self.valid_acc(pred, y)
+        # self.log('valid_acc', self.valid_acc, on_step=False, on_epoch=True)
+        # return acc
         
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)

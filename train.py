@@ -8,6 +8,7 @@ from model.prot_cnn import ProtCNN
 from Plotter import Plotter
 
 def train(model, train_loader, dev_loader, max_epochs):
+    # Training Loop
     trainer = pl.Trainer(
         max_epochs=max_epochs,
     )
@@ -22,7 +23,6 @@ def evaluate_model(model, dataloader,trainer):
 
 def predict(model, dataloader):
     # Prediction loop
-    trainer = pl.Trainer()
     predictions = []
     for batch in dataloader:
         x = batch['sequence']
