@@ -2,7 +2,7 @@
 
 The provided code defines a custom dataset class called `SequenceDataset` for use with PyTorch's DataLoader. This dataset is designed to handle sequences and their corresponding labels for a machine learning task. 
 
-###Files:
+FILES:
 
 ** `requirements.txt` contains all the libraries you need to run the code. To install the libraries, type the following in your terminal-
    `pip install . -r requirements.txt`
@@ -24,4 +24,5 @@ The provided code defines a custom dataset class called `SequenceDataset` for us
    This will create a runnable image protein classifier in your docker container. When you build with docker, it will see if all libraries have been installed from requirements.txt, and it might fail if your dependencies are not compatible with the version of Python you are using.
 
 7. Next step is to run this docker image -
+   
      `docker run protein_classifier`
