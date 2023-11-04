@@ -6,3 +6,5 @@ seaborn
 tensorboard
 torch
 torchmetrics
+pytest
+tqdm
