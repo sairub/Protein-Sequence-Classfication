@@ -2,7 +2,6 @@ import os
 import argparse
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
 from utils import Utils
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
@@ -43,6 +42,7 @@ def validate(val_loader, model, criterion):
 
     with torch.no_grad():
         for batch in val_loader:
+            print(len(batch))
             inputs, targets = batch['sequence'], batch['target']
             outputs = model(inputs)
             loss = criterion(outputs, targets)
@@ -106,11 +106,11 @@ def main():
     optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     criterion = nn.CrossEntropyLoss()
     lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.9)
-
+        
     # Training and validation loop
     for epoch in range(args.num_epochs):
         train_loss, train_acc = train(dataloaders['train'], model, optimizer, criterion)
-        val_loss, val_acc = validate(dataloaders['val'], model, criterion)
+        val_loss, val_acc = validate(dataloaders['dev'], model, criterion)
 
         print(f'Epoch {epoch + 1}/{args.num_epochs} | '
             f'Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% | '
