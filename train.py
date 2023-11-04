@@ -42,7 +42,6 @@ def validate(val_loader, model, criterion):
 
     with torch.no_grad():
         for batch in val_loader:
-            print(len(batch))
             inputs, targets = batch['sequence'], batch['target']
             outputs = model(inputs)
             loss = criterion(outputs, targets)
