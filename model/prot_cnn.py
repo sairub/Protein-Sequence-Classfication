@@ -45,7 +45,7 @@ class ProtCNN(pl.LightningModule):
     def __init__(self, x, num_classes):
         super(ProtCNN, self).__init__()
         self.embedding = nn.Embedding(len(x), 128)
-        self.self_attn = nn.MultiheadAttention(embed_dim=120, num_heads=4)
+        # self.self_attn = nn.MultiheadAttention(embed_dim=128, num_heads=4)
         self.conv1 = nn.Conv1d(128, 128, kernel_size=1, padding=0)
         self.residual_block = nn.Sequential(
             ResidualBlock(128, 128, dilation=2),

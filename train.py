@@ -2,6 +2,7 @@ import os
 import argparse
 import torch
 import torch.nn as nn
+import pytorch_lightning as pl
 from utils import Utils
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
@@ -10,7 +11,7 @@ from model.prot_cnn import ProtCNN
 from Plotter import Plotter
 
 # training loop
-def train(train_loader, model, optimizer, criterion):
+def train(train_loader, model, optimizer, criterion, device):
     model.train()
     total_loss = 0.0
     correct = 0
@@ -18,7 +19,7 @@ def train(train_loader, model, optimizer, criterion):
     print("If you are not using a GPU, this might take a few hours, please don't close the terminal")
     
     for batch in train_loader:
-        inputs, targets = batch['sequence'], batch['target']
+        inputs, targets = batch['sequence'].to(device), batch['target'].to(device)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, targets)
@@ -34,7 +35,7 @@ def train(train_loader, model, optimizer, criterion):
     return total_loss, accuracy
 
 # validation loop
-def validate(val_loader, model, criterion):
+def validate(val_loader, model, criterion, device):
     model.eval()
     total_loss = 0.0
     correct = 0
@@ -42,7 +43,7 @@ def validate(val_loader, model, criterion):
 
     with torch.no_grad():
         for batch in val_loader:
-            inputs, targets = batch['sequence'], batch['target']
+            inputs, targets = batch['sequence'].to(device), batch['target'].to(device)
             outputs = model(inputs)
             loss = criterion(outputs, targets)
 
@@ -61,7 +62,7 @@ def main():
     parser.add_argument("--learning_rate", type=float, default=1e-2, help="Learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
     parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight Decay")
-    parser.add_argument("--num_epochs", type=int, default=20, help="Number of training epochs")
+    parser.add_argument("--num_epochs", type=int, default=10, help="Number of training epochs")
     parser.add_argument("--num_workers", type=int, default=0, help="Number of Workers")
 
     args = parser.parse_args()
@@ -69,6 +70,9 @@ def main():
     # Load data
     u = Utils() # Object of Utils class to read the functions
     train_data, train_targets = u.reader("train", args.data_dir)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     
     # Build labels
     fam2label = u.build_labels(train_targets)
@@ -101,15 +105,15 @@ def main():
     num_classes = len(fam2label)
 
     # Model and optimizer setup
-    model = ProtCNN(word2id, num_classes)
+    model = ProtCNN(word2id, num_classes).to(device)
     optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     criterion = nn.CrossEntropyLoss()
     lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.9)
-        
+
     # Training and validation loop
     for epoch in range(args.num_epochs):
-        train_loss, train_acc = train(dataloaders['train'], model, optimizer, criterion)
-        val_loss, val_acc = validate(dataloaders['dev'], model, criterion)
+        train_loss, train_acc = train(dataloaders['train'], model, optimizer, criterion, device)
+        val_loss, val_acc = validate(dataloaders['dev'], model, criterion, device)
 
         print(f'Epoch {epoch + 1}/{args.num_epochs} | '
             f'Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}% | '
