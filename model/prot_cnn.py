@@ -64,6 +64,7 @@ class ProtCNN(pl.LightningModule):
         x = self.relu(self.conv1(x))
         x = self.residual_block(x)
         x = self.pooling(x)
-        x = self.flatten(x)
         x = self.dropout(x)
+        x = self.flatten(x)
+        
         return self.fc(x)
