@@ -2,7 +2,6 @@ import os
 import argparse
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
 from utils import Utils
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
@@ -16,7 +15,6 @@ def train(train_loader, model, optimizer, criterion, device):
     total_loss = 0.0
     correct = 0
     total = 0
-    print("If you are not using a GPU, this might take a few hours, please don't close the terminal")
     
     for batch in train_loader:
         inputs, targets = batch['sequence'].to(device), batch['target'].to(device)
@@ -108,9 +106,10 @@ def main():
     model = ProtCNN(word2id, num_classes).to(device)
     optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     criterion = nn.CrossEntropyLoss()
-    lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.9)
+    lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.5)
 
     # Training and validation loop
+    print("If you are not using a GPU, this might take a few hours, please don't close the terminal")
     for epoch in range(args.num_epochs):
         train_loss, train_acc = train(dataloaders['train'], model, optimizer, criterion, device)
         val_loss, val_acc = validate(dataloaders['dev'], model, criterion, device)
