@@ -56,7 +56,6 @@ class ProtCNN(pl.LightningModule):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=0.4)
         self.fc = nn.Linear(7680, num_classes)
-        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         x = self.embedding(x)
@@ -67,4 +66,4 @@ class ProtCNN(pl.LightningModule):
         x = self.pooling(x)
         x = self.dropout(x)
         x = self.flatten(x)
-        return self.softmax(self.fc(x))
+        return self.fc(x)
