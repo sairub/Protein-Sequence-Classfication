@@ -2,6 +2,7 @@ import os
 import argparse
 import torch
 import torch.nn as nn
+import pytorch_lightning as pl
 from utils import Utils
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
@@ -15,7 +16,10 @@ def train(train_loader, model, optimizer, criterion, device):
     total_loss = 0.0
     correct = 0
     total = 0
-    
+    min_loss = float('inf')
+    max_loss = 0.0
+    normalized_loss = 0.0
+    counter = 0
     for batch in train_loader:
         inputs, targets = batch['sequence'].to(device), batch['target'].to(device)
         optimizer.zero_grad()
@@ -24,13 +28,22 @@ def train(train_loader, model, optimizer, criterion, device):
         loss.backward()
         optimizer.step()
 
-        total_loss += loss.item()
+        loss = loss.item()
+        min_loss = min(min_loss, loss)
+        max_loss = max(max_loss, loss)
+        counter+=1
+        try:
+            # Normalize the loss using min-max normalization
+            normalized_loss = (loss - min_loss) / (max_loss - min_loss)
+            total_loss+=normalized_loss
+        except:
+            pass
+        
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
-
     accuracy = 100 * correct / total
-    return total_loss, accuracy
+    return total_loss/counter, accuracy
 
 # validation loop
 def validate(val_loader, model, criterion, device):
@@ -38,6 +51,10 @@ def validate(val_loader, model, criterion, device):
     total_loss = 0.0
     correct = 0
     total = 0
+    min_loss = float('inf')
+    max_loss = 0.0
+    normalized_loss = 0.0
+    counter = 0
 
     with torch.no_grad():
         for batch in val_loader:
@@ -45,18 +62,27 @@ def validate(val_loader, model, criterion, device):
             outputs = model(inputs)
             loss = criterion(outputs, targets)
 
-            total_loss += loss.item()
+            loss = loss.item()
+            min_loss = min(min_loss, loss)
+            max_loss = max(max_loss, loss)
+            counter+=1
+            try:
+                # Normalize the loss using min-max normalization
+                normalized_loss = (loss - min_loss) / (max_loss - min_loss)
+                total_loss+=normalized_loss
+            except:
+                pass
+        
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-
+            
     accuracy = 100 * correct / total
-    return total_loss, accuracy
-
+    return total_loss/counter, accuracy
 def main():
     parser = argparse.ArgumentParser(description="Protein Classifier")
     parser.add_argument("--data_dir", type=str, default=os.path.abspath(os.path.dirname(__file__))+"/random_split", help="Path to the data directory")
-    parser.add_argument("--batch_size", type=int, default=256, help="Batch size for training")
+    parser.add_argument("--batch_size", type=int, default=64, help="Batch size for training")
     parser.add_argument("--learning_rate", type=float, default=1e-2, help="Learning rate")
     parser.add_argument("--momentum", type=float, default=0.9, help="Momentum")
     parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight Decay")
@@ -70,7 +96,7 @@ def main():
     train_data, train_targets = u.reader("train", args.data_dir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(device)
+    print("Using", device)
     
     # Build labels
     fam2label = u.build_labels(train_targets)
@@ -106,7 +132,7 @@ def main():
     model = ProtCNN(word2id, num_classes).to(device)
     optimizer = Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     criterion = nn.CrossEntropyLoss()
-    lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.5)
+    lr_scheduler = MultiStepLR(optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.9)
 
     # Training and validation loop
     print("If you are not using a GPU, this might take a few hours, please don't close the terminal")
