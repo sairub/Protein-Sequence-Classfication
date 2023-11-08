@@ -1,5 +1,3 @@
-# ML_Engineer - Sairub Naaz
-
 The provided code defines a custom dataset class called `SequenceDataset` for use with PyTorch's DataLoader. This dataset is designed to handle sequences and their corresponding labels for a machine learning task. 
 
 ## MODEL:
